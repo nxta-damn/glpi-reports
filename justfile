@@ -7,7 +7,7 @@ install:
     uv sync --all-extras --all-groups
 
 lint:
-    pre-commit run --all-files
+    just _py pre-commit run --all-files
 
 tests: install
     just _cargo --bin run_tests
