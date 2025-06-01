@@ -34,7 +34,7 @@ jobs:
           python-version-file: ${{ env.PYTHON_VERSION_FILE }}
 
       - name: Install project dependencies
-        run: uv pip install --system -r pyproject.toml
+        run: just install
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -70,48 +70,9 @@ jobs:
       - name: Install project dependencies
         run: just install
 
-      - name: Install Ruff
-        uses: astral-sh/ruff-action@v2
+      - name: Run linter
+        run: just lint
 
-      - name: Run Ruff linter
-        run: uv run ruff check --config ruff.toml --output-format=github
-
-  static-analysis:
-    name: Static Type Checking
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install just
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just@1.14.0
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
-      - name: Install project dependencies
-        run: just install
-
-      - name: Run mypy
-        run: uv run mypy -v --config-file mypy.ini --exclude
   test:
     name: Run Tests
     needs: static-analysis
