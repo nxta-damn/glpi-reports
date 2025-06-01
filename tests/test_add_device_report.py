@@ -1,12 +1,12 @@
-from uuid_extensions import uuid7
 from uuid import UUID
 
-from sqlalchemy import text, Connection
 from fastapi.testclient import TestClient
+from sqlalchemy import Connection, text
 from starlette.status import HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
+from uuid_extensions import uuid7
 
-from reports.ioc.ioc_containers import ApiContainer
 from reports.domain.types import ReportId
+from reports.ioc.ioc_containers import ApiContainer
 
 
 def test_add_report(test_client: TestClient, api_container: ApiContainer) -> None:
@@ -23,13 +23,11 @@ def test_add_report(test_client: TestClient, api_container: ApiContainer) -> Non
         "report_name": name,
         "comment": comment,
         "device_id": device_id,
-        "device_type": device_type
+        "device_type": device_type,
     }
 
     response = test_client.post(
-        "/reports",
-        json=report_data,
-        headers={"X-User-Id": str(creator_id)}
+        "/reports", json=report_data, headers={"X-User-Id": str(creator_id)}
     )
 
     # Verify response
@@ -40,7 +38,7 @@ def test_add_report(test_client: TestClient, api_container: ApiContainer) -> Non
     with api_container() as req_container:
         connection = req_container.get(Connection)
         select_sql = text("SELECT * FROM device_reports WHERE report_id = :report_id")
-        result = connection.execute(select_sql, {"report_id": report_id,})
+        result = connection.execute(select_sql, {"report_id": report_id})
         row = result.fetchone()
 
     assert row is not None
@@ -56,7 +54,7 @@ def test_add_report_with_unauthorized_user(test_client: TestClient) -> None:
         "report_name": "test report",
         "comment": "test comment",
         "device_id": 1,
-        "device_type": "Computer"
+        "device_type": "Computer",
     }
 
     result = test_client.post("/reports", json=report_data)

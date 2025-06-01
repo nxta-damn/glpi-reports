@@ -1,9 +1,9 @@
-from uuid_extensions import uuid7
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from sqlalchemy import text, Connection
 from fastapi.testclient import TestClient
+from sqlalchemy import Connection, text
 from starlette.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
+from uuid_extensions import uuid7
 
 from reports.ioc.ioc_containers import ApiContainer
 
@@ -40,7 +40,7 @@ def test_change_report(test_client: TestClient, api_container: ApiContainer) -> 
                 "report_name": "test",
                 "device_id": 1,
                 "device_type": "test",
-            }
+            },
         )
         connection.commit()
 
@@ -53,7 +53,7 @@ def test_change_report(test_client: TestClient, api_container: ApiContainer) -> 
     result = test_client.put(
         f"/reports/{report_id}",
         json=update_payload,
-        headers={"X-User-Id": str(creator_id)}
+        headers={"X-User-Id": str(creator_id)},
     )
     assert result.status_code == HTTP_200_OK
 
@@ -61,8 +61,8 @@ def test_change_report(test_client: TestClient, api_container: ApiContainer) -> 
     with api_container() as req_container:
         connection = req_container.get(Connection)
         select_sql = text("SELECT * FROM device_reports WHERE report_id = :report_id")
-        result = connection.execute(select_sql, {"report_id": report_id})
-        row = result.fetchone()
+        res = connection.execute(select_sql, {"report_id": report_id})
+        row = res.fetchone()
 
     assert row is not None
     assert row.report_name == update_payload["report_name"]
@@ -93,9 +93,7 @@ def test_change_device_with_non_existent_report(test_client: TestClient) -> None
     }
 
     result = test_client.put(
-        f"/reports/{uuid7()}",
-        json=update_payload,
-        headers={"X-User-Id": str(uuid7())}
+        f"/reports/{uuid7()}", json=update_payload, headers={"X-User-Id": str(uuid7())}
     )
 
     assert result.status_code == HTTP_404_NOT_FOUND

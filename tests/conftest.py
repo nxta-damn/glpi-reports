@@ -1,23 +1,27 @@
-from typing import cast, TYPE_CHECKING, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING, cast
 
 import pytest
-from sqlalchemy import Engine
 from dishka.integrations.fastapi import setup_dishka as add_container_to_fastapi
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import Engine
 
-from reports.ioc.ioc_containers import bootstrap_api_container
-from reports.ioc.ioc_containers import ApiContainer
-from tests.config import ApiTestConfig
-from reports.services.common.application_error import ApplicationError
 from reports.adapters.persistence.sql_mappings import map_tables
-from reports.presentation.api.http_report_controllers import REPORTS_ROUTER
-from reports.presentation.api.exception_handlers import internal_error_handler, application_error_handler
 from reports.adapters.persistence.sql_tables import METADATA
+from reports.ioc.ioc_containers import ApiContainer, bootstrap_api_container
+from reports.presentation.api.exception_handlers import (
+    application_error_handler,
+    internal_error_handler,
+)
+from reports.presentation.api.http_report_controllers import REPORTS_ROUTER
+from reports.services.common.application_error import ApplicationError
+from tests.config import ApiTestConfig
 
 if TYPE_CHECKING:
-    from reports.config import ApiConfig
     from starlette.types import HTTPExceptionHandler
+
+    from reports.config import ApiConfig
 
 
 @pytest.fixture(scope="session")
@@ -25,14 +29,12 @@ def api_config() -> ApiTestConfig:
     return ApiTestConfig()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def api_container(api_config: ApiTestConfig) -> ApiContainer:
-    return bootstrap_api_container(
-        config=cast("ApiConfig", api_config)
-    )
+    return bootstrap_api_container(config=cast("ApiConfig", api_config))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def fastapi_app(api_container: ApiContainer) -> FastAPI:
     app = FastAPI()
     app.include_router(REPORTS_ROUTER)
@@ -52,7 +54,7 @@ def fastapi_app(api_container: ApiContainer) -> FastAPI:
     return app
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def test_client(fastapi_app: FastAPI) -> Iterator[TestClient]:
     with TestClient(fastapi_app) as client:
         yield client

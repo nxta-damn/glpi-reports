@@ -6,6 +6,13 @@ help:
 install:
     uv sync --all-extras --all-groups
 
+lint:
+    ruff check --fix src/ tests/
+    ruff format src/ tests/
+
+mypy:
+    mypy -v src/ tests/ stubs/
+
 tests: install
     just _cargo --bin run_tests
 
