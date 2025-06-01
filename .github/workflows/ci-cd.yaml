@@ -74,7 +74,7 @@ jobs:
         uses: astral-sh/ruff-action@v2
 
       - name: Run Ruff linter
-        run: ruff check --output-format=github --exclude="**/*.pyi" .
+        run: ruff check src/ tests/ --output-format=github
 
   static-analysis:
     name: Static Type Checking
@@ -111,7 +111,7 @@ jobs:
         run: just install
 
       - name: Run mypy
-        run: mypy -v --config-file mypy.ini --exclude '*.pyi'
+        run: mypy -v src/ tests/ --config-file mypy.ini --exclude 'stubs/'
   test:
     name: Run Tests
     needs: static-analysis
