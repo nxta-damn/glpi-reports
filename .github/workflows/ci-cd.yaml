@@ -74,7 +74,7 @@ jobs:
         uses: astral-sh/ruff-action@v2
 
       - name: Run Ruff linter
-        run: ruff check --output-format=github
+        run: ruff check --config ruff.toml --output-format=github
 
   static-analysis:
     name: Static Type Checking
