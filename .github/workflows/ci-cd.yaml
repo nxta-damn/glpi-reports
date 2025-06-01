@@ -45,7 +45,6 @@ jobs:
 
   lint:
     name: Code Linting
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -75,7 +74,6 @@ jobs:
 
   test:
     name: Run Tests
-    needs: static-analysis
     runs-on: ubuntu-latest
 
     steps:
