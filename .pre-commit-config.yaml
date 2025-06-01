@@ -15,9 +15,7 @@ repos:
       - id: ruff
         args: [ --fix ]
         entry: 'ruff check'
-        files: ^src/
       - id: ruff-format
-        files: ^src/
 
   - repo: local
     hooks:
@@ -28,6 +26,5 @@ repos:
         args: [
           '--config-file=mypy.ini'
         ]
-        files: ^src/
         types_or: [python]
         entry: 'mypy -v'
