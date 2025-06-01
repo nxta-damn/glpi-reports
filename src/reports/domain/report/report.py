@@ -47,10 +47,7 @@ class DeviceReport(Entity[ReportId]):
 
         self._report_name = report_name
         self.add_event(
-            ReportNameChanged(
-                report_id=self.entity_id,
-                report_name=self.report_name,
-            )
+            ReportNameChanged(report_id=self.entity_id, report_name=self.report_name)
         )
 
     @property

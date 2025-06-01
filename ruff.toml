@@ -12,6 +12,7 @@ exclude = [
     "build",
     "docs",
     "benchmarks",
+    "stubs"
 ]
 ignore = [
     "A003", # Python builtin is shadowed by class attribute {name} from {row}
