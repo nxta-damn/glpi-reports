@@ -5,12 +5,11 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-orange)
 
-A modern, clean architecture service for managing device reports with event-driven design.
+A modern, service for managing device reports.
 
 ## 🚀 Features
 
 - **Device Report Management**: Create, update, retrieve, and delete device reports
-- **Event-Driven Design**: Outbox pattern for reliable event publishing
 - **API Documentation**: Auto-generated OpenAPI documentation
 - **Background Processing**: Scheduled tasks with Hatchet SDK
 - **Database Migrations**: Managed through Alembic
@@ -142,7 +141,6 @@ reports start-worker
 
 ### Key Components
 
-- **Event Bus**: For handling domain events
 - **Outbox Pattern**: For reliable event publishing
 - **Unit of Work**: For transaction management
 - **Command/Query Handlers**: For processing requests
