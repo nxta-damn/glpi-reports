@@ -74,7 +74,7 @@ jobs:
         uses: astral-sh/ruff-action@v2
 
       - name: Run Ruff linter
-        run: ruff check --config ruff.toml --output-format=github
+        run: uv run ruff check --config ruff.toml --output-format=github
 
   static-analysis:
     name: Static Type Checking
@@ -111,7 +111,7 @@ jobs:
         run: just install
 
       - name: Run mypy
-        run: mypy -v --config-file mypy.ini --exclude
+        run: uv run mypy -v --config-file mypy.ini --exclude
   test:
     name: Run Tests
     needs: static-analysis
