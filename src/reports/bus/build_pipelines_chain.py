@@ -1,0 +1,27 @@
+from collections.abc import Iterable
+from typing import Any
+
+from reports.services.common.handlers import NotificationHandler, RequestHandler
+from reports.services.common.pipeline import HandleNext, PipelineBehavior
+
+
+def build_pipeline_behaviors_chain(
+    handler: RequestHandler | NotificationHandler,
+    behaviors: Iterable[PipelineBehavior],
+) -> HandleNext:
+    current_behavior: HandleNext = handler.handle
+
+    for behavior in behaviors:
+        current_behavior = _wrap_with_behavior(behavior, current_behavior)
+
+    return current_behavior
+
+
+def _wrap_with_behavior(
+    behavior: PipelineBehavior,
+    handle_next: HandleNext,
+) -> HandleNext:
+    def wrapped_handler(request: Any) -> Any:
+        return behavior.handle(request, handle_next)
+
+    return wrapped_handler

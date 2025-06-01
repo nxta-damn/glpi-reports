@@ -1,0 +1,10 @@
+services:
+  test-postgres:
+    image: postgres:latest
+    container_name: postgres-test
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-test_db}
+    ports:
+      - "5435:5432"

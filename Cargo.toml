@@ -1,0 +1,27 @@
+[package]
+name = "scripts"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenvy = "0.15.7"
+
+[[bin]]
+name = "run_tests"
+path = "scripts/src/run_tests.rs"
+
+[[bin]]
+name = "run_app"
+path = "scripts/src/run_app.rs"
+
+[[bin]]
+name = "stop_app"
+path = "scripts/src/stop_app.rs"
+
+[[bin]]
+name = "run_worker"
+path = "scripts/src/run_worker.rs"
+
+[[bin]]
+name = "stop_worker"
+path = "scripts/src/stop_worker.rs"

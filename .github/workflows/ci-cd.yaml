@@ -1,0 +1,160 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master, dev, main]
+  pull_request:
+    branches: [master, dev, main]
+
+env:
+  PYTHON_VERSION_FILE: '.python-version'
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.14.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install project dependencies
+        run: uv pip install --system -r pyproject.toml
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+  lint:
+    name: Code Linting
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.14.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install project dependencies
+        run: just install
+
+      - name: Install Ruff
+        uses: astral-sh/ruff-action@v2
+
+      - name: Run Ruff linter
+        run: ruff check --fix --output-format=github .
+
+  static-analysis:
+    name: Static Type Checking
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.14.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install project dependencies
+        run: just install
+
+      - name: Run mypy
+        run: mypy -v
+  test:
+    name: Run Tests
+    needs: static-analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.14.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ${{ env.PYTHON_VERSION_FILE }}
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Create temporary .env.test
+        run: |
+          umask 077
+          cat <<EOF > .env.test
+          POSTGRES_TEST_HOST=${{ secrets.POSTGRES_TEST_HOST }}
+          POSTGRES_TEST_PORT=${{ secrets.POSTGRES_TEST_PORT }}
+          POSTGRES_TEST_USER=${{ secrets.POSTGRES_TEST_USER }}
+          POSTGRES_TEST_PASSWORD=${{ secrets.POSTGRES_TEST_PASSWORD }}
+          POSTGRES_TEST_DB=${{ secrets.POSTGRES_TEST_DB }}
+          HATCHET_API_KEY=${{ secrets.HATCHET_API_KEY }}
+          EOF
+
+      - name: Run Tests
+        run: just tests

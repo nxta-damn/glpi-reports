@@ -1,0 +1,113 @@
+services:
+  api-postgres:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+
+  api-migration:
+    container_name: api-migration
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_PORT: $POSTGRES_PORT
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+      UVICORN_SERVER_HOST: $UVICORN_SERVER_HOST
+      UVICORN_SERVER_PORT: $UVICORN_SERVER_PORT
+      UVICORN_APP_PATH: $UVICORN_APP_PATH
+      WORKER_APP_PATH: $WORKER_APP_PATH
+      HATCHET_API_KEY: $HATCHET_API_KEY
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+    command: ['reports', 'upgrade-migration']
+
+  api-rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq-broker
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBIT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBIT_PASSWORD
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_running -q"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+
+  api:
+    container_name: reports-api
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_PORT: $POSTGRES_PORT
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+      UVICORN_SERVER_HOST: $UVICORN_SERVER_HOST
+      UVICORN_SERVER_PORT: $UVICORN_SERVER_PORT
+      UVICORN_APP_PATH: $UVICORN_APP_PATH
+      WORKER_APP_PATH: $WORKER_APP_PATH
+      HATCHET_API_KEY: $HATCHET_API_KEY
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:5000/healthcheck"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+    entrypoint: ['reports', 'start-uvicorn']
+
+  api-worker:
+    container_name: api-worker
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      RABBIT_USER: $RABBIT_USER
+      RABBIT_PASSWORD: $RABBIT_PASSWORD
+      RABBIT_HOST: $RABBIT_HOST
+      RABBIT_PORT: $RABBIT_PORT
+      POSTGRES_HOST: $POSTGRES_HOST
+      POSTGRES_PORT: $POSTGRES_PORT
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+      UVICORN_SERVER_HOST: $UVICORN_SERVER_HOST
+      UVICORN_SERVER_PORT: $UVICORN_SERVER_PORT
+      UVICORN_APP_PATH: $UVICORN_APP_PATH
+      WORKER_APP_PATH: $WORKER_APP_PATH
+      HATCHET_API_KEY: $HATCHET_API_KEY
+    depends_on:
+      api-postgres:
+        condition: service_healthy
+      api-rabbitmq:
+        condition: service_healthy
+    command: ['reports', 'start-worker']
+
+volumes:
+  postgres_data:
