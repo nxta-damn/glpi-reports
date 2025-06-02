@@ -66,8 +66,6 @@ class SqlReportRepository(ReportRepository):
         result = self._connection.execute(stmt, {"report_id": report_id})
         rows: Row | None = result.fetchone()
 
-        print(rows)
-
         if not rows:
             return None
 
